@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ambari
+      POSTGRES_PASSWORD: bigdata
+      POSTGRES_DB: ambari
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ambari-network
+
+  ambari-server:
+    image: ambari-server:rocky8 # Replace with the actual Ambari server image
+    depends_on:
+      - postgres
+    environment:
+      - AMBARI_DB_HOST=postgres
+      - AMBARI_DB_PORT=5432
+      - AMBARI_DB_USER=ambari
+      - AMBARI_DB_PASSWORD=bigdata
+      - AMBARI_DB_NAME=ambari
+    ports:
+      - "8080:8080"
+      - "8440:8440"
+      - "8441:8441"
+    volumes:
+      - ambari-server-data:/var/lib/ambari-server
+    networks:
+      - ambari-network
+    command: >
+      bash -c "ambari-server setup -s --database=postgres --databasehost=postgres --databaseport=5432 --databasename=ambari --databaseusername=ambari --databasepassword=bigdata &&
+               ambari-server start"
+
+volumes:
+  postgres-data:
+  ambari-server-data:
+
+networks:
+  ambari-network:
+    driver: bridge

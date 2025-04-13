@@ -1,7 +1,7 @@
 # 使用 Rocky Linux 8 作為基礎映像
 FROM rockylinux/rockylinux:8
 
-# 安裝必要的依賴項
+# 啟用 PowerTools 並安裝必要的依賴項
 RUN dnf install -y dnf-plugins-core && \
     dnf config-manager --set-enabled powertools && \
     dnf clean all && \
@@ -17,9 +17,10 @@ RUN dnf install -y dnf-plugins-core && \
 # 下載並安裝 PostgreSQL JDBC 驅動（Ambari Server 需要與 PostgreSQL 通信）
 RUN wget https://jdbc.postgresql.org/download/postgresql-42.7.4.jar -O /usr/share/java/postgresql-jdbc.jar
 
-# 添加 Ambari 倉庫並安裝 Ambari Server
-RUN wget -O /etc/yum.repos.d/ambari.repo http://public-repo-1.hortonworks.com/ambari/centos8/2.x/updates/2.7.5.0/ambari.repo && \
-    dnf install -y ambari-server
+# 手動下載並安裝 Ambari Server RPM 包
+RUN wget https://archive.apache.org/dist/ambari/ambari-2.7.5/ambari-server-2.7.5-0.el7.x86_64.rpm -O /tmp/ambari-server.rpm && \
+    dnf install -y /tmp/ambari-server.rpm && \
+    rm -f /tmp/ambari-server.rpm
 
 # 設置 Ambari Server 環境
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk
